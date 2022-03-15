@@ -1,0 +1,33 @@
+.Panel {
+  display: grid;
+  gap: 2rem;
+}
+
+.Panel-items {
+  display: grid;
+  gap: 1rem;
+}
+.Panel-item {
+  width: 100%;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(calc(var(--Panel-item-columns) + 1), 1fr);
+}
+
+.Panel-item-actions {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(var(--Panel-item-actions-columns), 1fr);
+  font-size: 12px;
+}
+
+.Panel-header {
+  display: grid;
+  gap: 1rem;
+}
+
+.Panel-row-inline {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

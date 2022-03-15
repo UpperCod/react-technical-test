@@ -1,0 +1,31 @@
+:root {
+  --Button-border: none;
+  --Button-background: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.25),
+    rgba(0, 0, 0, 0.5)
+  );
+  --Button-color: white;
+  --Button-border-radius: var(--Input-border-radius, 0.25rem);
+  --Button-height: var(--Input-height, 0.25rem 2rem);
+  --Button-padding: var(--Input-padding);
+  --Button-shadow: var(--Input-shadow);
+}
+
+.Button {
+  height: var(--Button-height);
+  background: var(--Button-background);
+  border: var(--Button-border);
+  border-radius: var(--Button-border-radius);
+  color: var(--Button-color);
+  font: unset;
+  font-size: 1rem;
+  padding: var(--Button-padding);
+  box-sizing: border-box;
+  box-shadow: var(--Button-shadow);
+  cursor: pointer;
+}
+
+.Button::placeholder {
+  color: var(--Button-color);
+}

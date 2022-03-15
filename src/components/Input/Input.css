@@ -1,0 +1,37 @@
+:root {
+  --Input-border-radius: 0.5rem;
+  --Input-height: 2rem;
+  --Input-background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.2)
+  );
+  --Input-border: 1px solid rgba(255, 255, 255, 0.25);
+  --Input-border-bottom: 1px solid magenta;
+  --Input-color: white;
+  --Input-color-placeholder: rgba(255, 255, 255, 0.75);
+  --Input-padding: 0.25rem 1rem;
+  --Input-shadow: 0px 12px 22px rgba(0, 0, 0, 0.05);
+}
+
+.Input {
+  width: 100%;
+  height: var(--Input-height);
+  border-radius: var(--Input-border-radius);
+  background: var(--Input-background);
+  box-sizing: border-box;
+  padding: var(--Input-padding);
+  font: unset;
+  color: var(--Input-color);
+  border: none;
+}
+
+.Input:not(:disabled) {
+  box-shadow: var(--Input-shadow);
+  border: var(--Input-border);
+  border-bottom: var(--Input-border-bottom);
+}
+
+.Input::placeholder {
+  color: var(--Input-color-placeholder);
+}

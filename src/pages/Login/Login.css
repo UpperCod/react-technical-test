@@ -1,0 +1,8 @@
+:root {
+  --Login-width: 200px;
+}
+.Login {
+  width: var(--Login-width);
+  display: grid;
+  gap: 1rem;
+}
