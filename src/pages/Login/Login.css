@@ -1,8 +1,16 @@
 :root {
-  --Login-width: 200px;
+  --Login-form-width: 200px;
 }
+
 .Login {
-  width: var(--Login-width);
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-content: center;
+}
+
+.Login-form {
+  width: var(--Login-form-width);
   display: grid;
   gap: 1rem;
 }

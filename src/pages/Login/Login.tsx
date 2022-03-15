@@ -48,45 +48,47 @@ export function Login(props: {
 
   return (
     <div className="Login">
-      <h3>Login</h3>
-      <Input
-        disabled={disabled}
-        value={form.user}
-        type="text"
-        name="user"
-        placeholder="user"
-        onChange={({ target }) =>
-          setForm({
-            ...form,
-            [target.name]: target.value,
-          })
-        }
-      ></Input>
-      <Input
-        disabled={disabled}
-        type="password"
-        name="password"
-        value={form.password}
-        placeholder="password"
-        onChange={({ target }) =>
-          setForm({
-            ...form,
-            [target.name]: target.value,
-          })
-        }
-      ></Input>
-      <Button
-        disabled={disabled}
-        onClick={() => {
-          if (check(form)) return;
-          setData({
-            user: form.user,
-            password: form.password,
-          });
-        }}
-      >
-        Sign in
-      </Button>
+      <div className="Login-form">
+        <h3>Login</h3>
+        <Input
+          disabled={disabled}
+          value={form.user}
+          type="text"
+          name="user"
+          placeholder="user"
+          onChange={({ target }) =>
+            setForm({
+              ...form,
+              [target.name]: target.value,
+            })
+          }
+        ></Input>
+        <Input
+          disabled={disabled}
+          type="password"
+          name="password"
+          value={form.password}
+          placeholder="password"
+          onChange={({ target }) =>
+            setForm({
+              ...form,
+              [target.name]: target.value,
+            })
+          }
+        ></Input>
+        <Button
+          disabled={disabled}
+          onClick={() => {
+            if (check(form)) return;
+            setData({
+              user: form.user,
+              password: form.password,
+            });
+          }}
+        >
+          Sign in
+        </Button>
+      </div>
     </div>
   );
 }
