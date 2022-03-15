@@ -105,7 +105,7 @@ export function Panel(props: {
 
     /**
      * Con este proceso busco afectar solo los items asociados a save,
-     * para asi permitir actualizaciones multiples.
+     * para así permitir actualizaciones multiples.
      */
     const [snapshotItems, serverItems] = items.reduce<[Record[], any[]]>(
       ([items, serverItems], item) =>
@@ -133,7 +133,7 @@ export function Panel(props: {
     );
 
     /**
-     * Esperamos que todas las actualizaciones finalizen para si añádirlas
+     * Esperamos que todas las actualizaciones finalizen para así añádirlas
      * a los items observados.
      */
     Promise.all(
