@@ -31,3 +31,16 @@
   align-items: center;
   gap: 1rem;
 }
+
+.Panel-item--loading {
+  animation: Panel--loading 0.5s alternate infinite;
+}
+
+@keyframes Panel--loading {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
