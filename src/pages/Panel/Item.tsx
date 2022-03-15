@@ -13,6 +13,7 @@ const add = (value: any) => (value ? 1 : 0);
 export function Item(props: {
   fields: Field[];
   edit?: boolean;
+  loading?: boolean;
   onSave?: (fields: Field[]) => any;
   onEdit?: (fields: Field[]) => any;
   onRemove?: (fields: Field[]) => any;
@@ -26,11 +27,11 @@ export function Item(props: {
   });
 
   return (
-    <div className="Panel-item">
+    <div className={`Panel-item ${props.loading ? "Panel-item--loading" : ""}`}>
       {props.fields.map((field) => (
         <Input
           {...field}
-          disabled={!props.edit}
+          disabled={props.loading || !props.edit}
           onChange={({ target }) => {
             props.onChange(
               props.fields.map((field) =>
