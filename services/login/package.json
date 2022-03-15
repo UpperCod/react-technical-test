@@ -1,5 +1,10 @@
 {
+  "scripts": {
+    "dev": "node login.js"
+  },
   "dependencies": {
-    "koa": "latest"
+    "koa": "latest",
+    "@koa/router": "latest",
+    "koa-jwt": "latest"
   }
 }

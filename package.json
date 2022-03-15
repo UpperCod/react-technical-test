@@ -2,12 +2,12 @@
   "name": "react-tsx",
   "version": "1.0.0",
   "description": "",
-  "workspace": [
-    "client/**",
+  "workspaces": [
+    "client",
     "services/**"
   ],
   "scripts": {
-    "start": ""
+    "dev": "npm run dev --workspaces"
   },
   "repository": {
     "type": "git",
