@@ -24,6 +24,10 @@ npx netlify login
 npm run netlify:dev
 ```
 
+### Producción
+
+Asociar el repositorio a Netlify y listo
+
 ## Todo
 
 1. [ ] Asociar test.
