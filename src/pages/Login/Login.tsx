@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Input, Button } from "../../components/components";
 import "./Login.css";
 
-const defaultForm = () => ({ user: "demo", password: "demo" });
+const defaultForm = () => ({ user: "", password: "" });
 
 interface Form {
   user: string;
