@@ -2,18 +2,46 @@ import { useEffect, useState } from "react";
 import { Input, Button } from "../../components/components";
 import "./Login.css";
 
-export function Login(props: { endpoint: string }) {
-  const [form, setForm] = useState({ user: "", password: "" });
-  const [data, setData] = useState<{ user: string; password: string }>();
+const defaultForm = () => ({ user: "", password: "" });
+
+interface Form {
+  user: string;
+  password: string;
+}
+
+export function Login(props: {
+  endpoint: string;
+  onSuccess: (data: { token: string }) => any;
+  onError: (error: any) => any;
+}) {
+  const [form, setForm] = useState(defaultForm);
+  const [data, setData] = useState<Form>();
+
+  const check = (form: Form) => !form.user.trim() || !form.password.trim();
 
   useEffect(() => {
+    if (check(form)) return;
+
+    let cancel: boolean;
+
     fetch(props.endpoint, {
       headers: { "Content-Type": "application/json" },
       method: "post",
       body: JSON.stringify(data),
-    }).then((res) => {
-      console.log(res);
-    });
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (cancel) return;
+        if (res.token) {
+          props.onSuccess(res);
+        } else {
+          props.onError(res);
+        }
+        setData(defaultForm);
+      });
+    () => {
+      cancel = true;
+    };
   }, [data]);
 
   const disabled = !!data;
@@ -27,12 +55,12 @@ export function Login(props: { endpoint: string }) {
         type="text"
         name="user"
         placeholder="user"
-        onChange={({ target }) => {
+        onChange={({ target }) =>
           setForm({
             ...form,
             [target.name]: target.value,
-          });
-        }}
+          })
+        }
       ></Input>
       <Input
         disabled={disabled}
@@ -40,16 +68,17 @@ export function Login(props: { endpoint: string }) {
         name="password"
         value={form.password}
         placeholder="password"
-        onChange={({ target }) => {
+        onChange={({ target }) =>
           setForm({
             ...form,
             [target.name]: target.value,
-          });
-        }}
+          })
+        }
       ></Input>
       <Button
         disabled={disabled}
         onClick={() => {
+          if (check(form)) return;
           setData({
             user: form.user,
             password: form.password,

@@ -84,6 +84,7 @@ export function Panel(props: {
     fetch(props.endpoint + (id ? "/" + id : ""), {
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${props.token}`,
       },
       method,
       body,

@@ -3,15 +3,14 @@ import { Login } from "./pages/Login/Login";
 import { Panel } from "./pages/Panel/Panel";
 import "./App.css";
 
-function App() {
-  const [loggedIn, setLoggedIn] = useState<boolean>();
-
+function App(props: { endpointLogin: string; endpointGrud: string }) {
+  const [token, setToken] = useState<string>();
   return (
     <div className="App">
-      {loggedIn ? (
+      {token ? (
         <Panel
-          token="uppercod-15-03-2022"
-          endpoint="https://6230a3b1f113bfceed577e7f.mockapi.io/clients"
+          token={token}
+          endpoint={props.endpointGrud}
           template={[
             { type: "text", name: "name", value: "" },
             { type: "text", name: "business", value: "" },
@@ -19,7 +18,11 @@ function App() {
           ]}
         ></Panel>
       ) : (
-        <Login endpoint="http://localhost"></Login>
+        <Login
+          endpoint={props.endpointLogin}
+          onSuccess={(data) => setToken(data.token)}
+          onError={() => {}}
+        ></Login>
       )}
     </div>
   );
