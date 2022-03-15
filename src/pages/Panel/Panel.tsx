@@ -74,6 +74,7 @@ export function Panel(props: {
   template: Field[];
   endpoint: string;
   token: string;
+  onLogOut: () => any;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [currentCreate, setCurrentCreate] = useState<Record>(defaultRecord);
@@ -181,6 +182,7 @@ export function Panel(props: {
             fields: props.template,
           });
         }}
+        onLogOut={props.onLogOut}
       ></Header>
       <div className="Panel-new-item">
         {!!currentCreate.fields.length && (
