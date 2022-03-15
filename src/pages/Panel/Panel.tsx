@@ -5,10 +5,39 @@ import { Header } from "./Header";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
 
 interface Record {
-  id?: string;
+  id: string;
   edit?: boolean;
+  loading?: boolean;
   fields: Field[];
 }
+
+/**
+ *  Transforma un objeto tipo Field a un objeto normal
+ */
+const fieldsToObject = (fields: Field[]) =>
+  fields.reduce(
+    (data, { name, value }) => ({
+      ...data,
+      [name]: value,
+    }),
+    {}
+  );
+
+/**
+ * Transforma un objeto a un record
+ */
+const objectToFields = (item: any, template: Field[]): Record => ({
+  id: item.id,
+  fields: template.map((template) => ({
+    ...template,
+    value: item[template.name],
+  })),
+});
+
+/**
+ * Crea un record vacio
+ */
+const defaultRecord = (): Record => ({ id: "", fields: [] });
 
 export function Panel(props: {
   template: Field[];
@@ -16,10 +45,19 @@ export function Panel(props: {
   token: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [currentCreate, setCurrentCreate] = useState<Record>();
+  const [currentCreate, setCurrentCreate] = useState<Record>(defaultRecord);
   const [items, setItems] = useState<Record[]>([]);
-  const [create, setCreate] = useState<Record>();
-  const [save, setSave] = useState([]);
+  const [create, setCreate] = useState<Field[]>();
+  const [save, setSave] = useState<string[]>([]);
+
+  const request = (method: string, body?: string, id?: string) =>
+    fetch(props.endpoint + (id ? "/" + id : ""), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method,
+      body,
+    }).then((res) => res.json());
 
   useCustomProperties(ref, {
     "Panel-item-columns": 3,
@@ -28,65 +66,117 @@ export function Panel(props: {
   // GET
   useEffect(() => {
     let cancel: boolean;
-    fetch("https://6230a3b1f113bfceed577e7f.mockapi.io/clients")
-      .then((res) => res.json())
-      .then((data: any[]) => {
+
+    request("get").then(
+      (data: any[]) =>
         !cancel &&
-          setItems(
-            data.map<Record>((item) => ({
-              id: item.id,
-              fields: props.template.map((template) => ({
-                ...template,
-                value: item[template.name],
-              })),
-            }))
-          );
-      });
-    () => (cancel = true);
+        setItems(
+          data
+            .map<Record>((data) => objectToFields(data, props.template))
+            .reverse()
+        )
+    );
+
+    return () => {
+      cancel = true;
+    };
   }, [props.endpoint]);
 
   //  POST
   useEffect(() => {
     if (!create) return;
-    fetch("https://6230a3b1f113bfceed577e7f.mockapi.io/clients", {
-      headers: {
-        "content-type": "application/json",
-        body: JSON.stringify(
-          create.fields.reduce(
-            (data, { name, value }) => ({
-              ...data,
-              [name]: value,
-            }),
-            {}
-          )
-        ),
-      },
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        console.log(res);
-      });
+
+    setCurrentCreate({
+      ...currentCreate,
+      loading: true,
+    });
+
+    request("post", JSON.stringify(fieldsToObject(create))).then((data) => {
+      // Añáde el item creado en el servidor a la lista items.
+      setItems((items) => [objectToFields(data, props.template), ...items]);
+      // Resetea currentCreate
+      setCurrentCreate(defaultRecord);
+    });
   }, [create]);
+
+  // PUT
+  useEffect(() => {
+    if (!save.length) return;
+
+    /**
+     * Con este proceso busco afectar solo los items asociados a save,
+     * para asi permitir actualizaciones multiples.
+     */
+    const [snapshotItems, serverItems] = items.reduce<[Record[], any[]]>(
+      ([items, serverItems], item) =>
+        save.includes(item.id)
+          ? [
+              [
+                ...items,
+                {
+                  ...item,
+                  loading: true,
+                },
+              ],
+              [...serverItems, [item.id, fieldsToObject(item.fields)]],
+            ]
+          : [items, serverItems],
+      [[], []]
+    );
+    /**
+     * Regeneramos los items en funcion de los a actualizar.
+     */
+    setItems((items) =>
+      items.map(
+        (item) => snapshotItems.find(({ id }) => id === item.id) || item
+      )
+    );
+
+    /**
+     * Esperamos que todas las actualizaciones finalizen para si añádirlas
+     * a los items observados.
+     */
+    Promise.all(
+      serverItems.map(([id, data]) => request("put", JSON.stringify(data), id))
+    ).then((data: any[]) => {
+      setItems((items) =>
+        items.map((item) => {
+          const nextItem = data.find(({ id }) => id === item.id);
+          return nextItem ? objectToFields(nextItem, props.template) : item;
+        })
+      );
+    });
+
+    // Se resetea sabe para permitir nuevas actualizaciones.
+    setSave([]);
+  }, [save]);
 
   return (
     <div ref={ref} className="Panel">
       <Header
         onCreate={() => {
           setCurrentCreate({
+            id: "",
             fields: props.template,
           });
         }}
       ></Header>
       <div className="Panel-new-item">
-        {currentCreate && (
+        {!!currentCreate.fields.length && (
           <Item
+            edit
+            loading={currentCreate.loading}
             fields={currentCreate.fields}
             onSave={(fields) => {
-              setCreate({ fields });
+              setCreate(fields);
             }}
             onRemove={() => {}}
-            onChange={() => {}}
-            edit
+            onChange={(fields) => {
+              setCurrentCreate({
+                ...currentCreate,
+                fields,
+              });
+            }}
           ></Item>
         )}
       </div>
@@ -96,7 +186,10 @@ export function Panel(props: {
           <div key={item.id}>
             <Item
               edit={item.edit}
-              onSave={() => {}}
+              loading={item.loading}
+              onSave={() => {
+                setSave([...save, item.id]);
+              }}
               onEdit={(fields) => {
                 setItems(
                   items.map((_item) =>
