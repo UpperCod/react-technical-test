@@ -21,6 +21,11 @@ route.post("/", (ctx) => {
   return ctx;
 });
 
+route.get("/", (ctx) => {
+  ctx.status = 200;
+  ctx.body = {};
+});
+
 app.use(route.routes()).use(route.allowedMethods());
 
-app.listen(80);
+app.listen(8080);
