@@ -39,6 +39,37 @@ const objectToFields = (item: any, template: Field[]): Record => ({
  */
 const defaultRecord = (): Record => ({ id: "", fields: [] });
 
+function useMutateItems({
+  request,
+  set,
+  get,
+}: {
+  request: (id: string, data: any) => any;
+  get: (ids: string[]) => [string, any][];
+  set: (data: any[]) => any;
+}) {
+  const [list, setList] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!list.length) return;
+    /**
+     * Regeneramos los items en funcion de los a actualizar.
+     */
+    const items = get(list);
+    /**
+     * Esperamos que todas las actualizaciones finalizen para así añádirlas
+     * a los items observados.
+     */
+    Promise.all(items.map(([id, data]) => request(id, data))).then(
+      (data: any[]) => set(data)
+    );
+    // Se resetea sabe para permitir nuevas actualizaciones.
+    setList([]);
+  }, [list]);
+
+  return (id: string) => setList((list) => [...list, id]);
+}
+
 export function Panel(props: {
   template: Field[];
   endpoint: string;
@@ -48,7 +79,6 @@ export function Panel(props: {
   const [currentCreate, setCurrentCreate] = useState<Record>(defaultRecord);
   const [items, setItems] = useState<Record[]>([]);
   const [create, setCreate] = useState<Field[]>();
-  const [save, setSave] = useState<string[]>([]);
 
   const request = (method: string, body?: string, id?: string) =>
     fetch(props.endpoint + (id ? "/" + id : ""), {
@@ -100,56 +130,46 @@ export function Panel(props: {
   }, [create]);
 
   // PUT
-  useEffect(() => {
-    if (!save.length) return;
-
-    /**
-     * Con este proceso busco afectar solo los items asociados a save,
-     * para así permitir actualizaciones multiples.
-     */
-    const [snapshotItems, serverItems] = items.reduce<[Record[], any[]]>(
-      ([items, serverItems], item) =>
-        save.includes(item.id)
-          ? [
-              [
-                ...items,
-                {
-                  ...item,
-                  loading: true,
-                },
-              ],
-              [...serverItems, [item.id, fieldsToObject(item.fields)]],
-            ]
-          : [items, serverItems],
-      [[], []]
-    );
-    /**
-     * Regeneramos los items en funcion de los a actualizar.
-     */
-    setItems((items) =>
-      items.map(
-        (item) => snapshotItems.find(({ id }) => id === item.id) || item
-      )
-    );
-
-    /**
-     * Esperamos que todas las actualizaciones finalizen para así añádirlas
-     * a los items observados.
-     */
-    Promise.all(
-      serverItems.map(([id, data]) => request("put", JSON.stringify(data), id))
-    ).then((data: any[]) => {
+  const addUpdate = useMutateItems({
+    request: (id, data) => request("put", data, id),
+    get: (ids) => {
+      setItems((items) =>
+        items.map((item) =>
+          ids.includes(item.id) ? { ...item, loading: true } : item
+        )
+      );
+      return items
+        .filter(({ id }) => ids.includes(id))
+        .map((item) => [item.id, JSON.stringify(fieldsToObject(item.fields))]);
+    },
+    set: (data) =>
       setItems((items) =>
         items.map((item) => {
           const nextItem = data.find(({ id }) => id === item.id);
           return nextItem ? objectToFields(nextItem, props.template) : item;
         })
-      );
-    });
+      ),
+  });
 
-    // Se resetea sabe para permitir nuevas actualizaciones.
-    setSave([]);
-  }, [save]);
+  // DELETE
+  const addDelete = useMutateItems({
+    request: (id) => request("delete", undefined, id),
+    get: (ids) => {
+      setItems((items) =>
+        items.map((item) =>
+          ids.includes(item.id) ? { ...item, loading: true } : item
+        )
+      );
+      return items
+        .filter(({ id }) => ids.includes(id))
+        .map((item) => [item.id, JSON.stringify(fieldsToObject(item.fields))]);
+    },
+    set: (data) => {
+      setItems((items) =>
+        items.filter((item) => !data.find(({ id }) => id === item.id))
+      );
+    },
+  });
 
   return (
     <div ref={ref} className="Panel">
@@ -188,7 +208,7 @@ export function Panel(props: {
               edit={item.edit}
               loading={item.loading}
               onSave={() => {
-                setSave([...save, item.id]);
+                addUpdate(item.id);
               }}
               onEdit={(fields) => {
                 setItems(
@@ -203,7 +223,9 @@ export function Panel(props: {
                   )
                 );
               }}
-              onRemove={() => {}}
+              onRemove={() => {
+                addDelete(item.id);
+              }}
               onChange={(fields) => {
                 setItems(
                   items.map((_item) =>
